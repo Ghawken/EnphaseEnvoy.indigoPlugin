@@ -105,46 +105,48 @@ class Plugin(indigo.PluginBase):
 # http://forums.indigodomo.com/viewtopic.php?f=108&t=12898
 # for summary
 # Issue being that with trigger and control page changes will add the same to all devices unless check what device within below call - should be an issue for this plugin
+# """"
+#     def getDeviceStateList(self,dev):
+#         if self.debugLevel>=2:
+#             self.debugLog(u'getDeviceStateList called')
+#
+#         stateList = indigo.PluginBase.getDeviceStateList(self, dev)
+#         if stateList is not None:
+#             # Add any dynamic states onto the device based on the node's characteristics.
+#                 someNumState = self.getDeviceStateDictForNumberType(u"someNumState", u"Some Level Label",
+#                                                                     u"Some Level Label")
+#                 someStringState = self.getDeviceStateDictForStringType(u"someStringState", u"Some Level Label",
+#                                                                        u"Some Level Label")
+#                 someOnOffBoolState = self.getDeviceStateDictForBoolOnOffType(u"someOnOffBoolState", u"Some Level Label",
+#                                                                              u"Some Level Label")
+#                 someYesNoBoolState = self.getDeviceStateDictForBoolYesNoType(u"someYesNoBoolState", u"Some Level Label",
+#                                                                              u"Some Level Label")
+#                 someOneZeroBoolState = self.getDeviceStateDictForBoolOneZeroType(u"someOneZeroBoolState",
+#                                                                                  u"Some Level Label",
+#                                                                                  u"Some Level Label")
+#                 someTrueFalseBoolState = self.getDeviceStateDictForBoolTrueFalseType(u"someTrueFalseBoolState",
+#                                                                                      u"Some Level Label",
+#                                                                                      u"Some Level Label")
+#                 stateList.append(someNumState)
+#                 stateList.append(someStringState)
+#                 stateList.append(someOnOffBoolState)
+#                 stateList.append(someYesNoBoolState)
+#                 stateList.append(someOneZeroBoolState)
+#                 stateList.append(someTrueFalseBoolState)
+#                 try:
+#
+#                     if self.PanelDict is not None:
+#                         x=0
+#                         for array in self.PanelDict:
+#                             numberArray = "Panel"+str(x)
+#                             Statearray = self.getDeviceStateDictForNumberType(numberArray,numberArray,numberArray)
+#                             stateList.append(Statearray)
+#                             x=x+1
+#                 except Exception as error:
+#                     self.errorLog(unicode('error in statelist Panel:'+error.message))
+#         return stateList
+# """"
 
-    def getDeviceStateList(self,dev):
-        if self.debugLevel>=2:
-            self.debugLog(u'getDeviceStateList called')
-
-        stateList = indigo.PluginBase.getDeviceStateList(self, dev)
-        if stateList is not None:
-            # Add any dynamic states onto the device based on the node's characteristics.
-                someNumState = self.getDeviceStateDictForNumberType(u"someNumState", u"Some Level Label",
-                                                                    u"Some Level Label")
-                someStringState = self.getDeviceStateDictForStringType(u"someStringState", u"Some Level Label",
-                                                                       u"Some Level Label")
-                someOnOffBoolState = self.getDeviceStateDictForBoolOnOffType(u"someOnOffBoolState", u"Some Level Label",
-                                                                             u"Some Level Label")
-                someYesNoBoolState = self.getDeviceStateDictForBoolYesNoType(u"someYesNoBoolState", u"Some Level Label",
-                                                                             u"Some Level Label")
-                someOneZeroBoolState = self.getDeviceStateDictForBoolOneZeroType(u"someOneZeroBoolState",
-                                                                                 u"Some Level Label",
-                                                                                 u"Some Level Label")
-                someTrueFalseBoolState = self.getDeviceStateDictForBoolTrueFalseType(u"someTrueFalseBoolState",
-                                                                                     u"Some Level Label",
-                                                                                     u"Some Level Label")
-                stateList.append(someNumState)
-                stateList.append(someStringState)
-                stateList.append(someOnOffBoolState)
-                stateList.append(someYesNoBoolState)
-                stateList.append(someOneZeroBoolState)
-                stateList.append(someTrueFalseBoolState)
-                try:
-
-                    if self.PanelDict is not None:
-                        x=0
-                        for array in self.PanelDict:
-                            numberArray = "Panel"+str(x)
-                            Statearray = self.getDeviceStateDictForNumberType(numberArray,numberArray,numberArray)
-                            stateList.append(Statearray)
-                            x=x+1
-                except Exception as error:
-                    self.errorLog(unicode('error in statelist Panel:'+error.message))
-        return stateList
 
     # Shut 'em down.
     def deviceStopComm(self, dev):
@@ -177,7 +179,7 @@ class Plugin(indigo.PluginBase):
                     # self.debugLog(len(dev.states))
                     self.refreshDataForDev(dev)
 
-                self.sleep(120)
+                self.sleep(10)
 
         except self.StopThread:
             self.debugLog(u'Restarting/or error. Stopping Enphase/Envoy thread.')
@@ -240,7 +242,7 @@ class Plugin(indigo.PluginBase):
 
             dev.updateStateOnServer('deviceIsOnline', value=True, uiValue="Online")
             dev.setErrorStateOnServer(None)
-            # dev.updateStateOnServer('deviceTimestamp', value=t.time())
+
             return result
 
         except Exception as error:
@@ -250,7 +252,7 @@ class Plugin(indigo.PluginBase):
             if self.debugLevel >= 2:
                 self.debugLog(u"Device is offline. No data to return. ")
             dev.updateStateOnServer('deviceIsOnline', value=False, uiValue="Offline")
-            # dev.updateStateOnServer('deviceTimestamp', value=t.time())
+
             dev.setErrorStateOnServer(u'Offline')
             result = ""
             return result
@@ -301,14 +303,33 @@ class Plugin(indigo.PluginBase):
         if self.debugLevel >= 2:
             self.debugLog(u"Saving Values method called.")
 
+        try:
+            dev.updateStateOnServer('numberInverters', value=int(self.finalDict['production'][0]['activeCount']))
+            dev.updateStateOnServer('productionWattsNow', value=int(self.finalDict['production'][1]['wNow']))
+            dev.updateStateOnServer('consumptionWattsNow', value=int(self.finalDict['consumption'][0]['wNow']))
+            dev.updateStateOnServer('netConsumptionWattsNow', value=int(self.finalDict['consumption'][1]['wNow']))
+            dev.updateStateOnServer('production7days', value=int(self.finalDict['production'][1]['whLastSevenDays']))
+            dev.updateStateOnServer('consumption7days', value=int(self.finalDict['consumption'][0]['whLastSevenDays']))
 
-        dev.updateStateOnServer('numberInverters', value=int(self.finalDict['production'][0]['activeCount']))
+
+            dev.updateStateOnServer('storageActiveCount', value=int(self.finalDict['storage'][0]['activeCount']))
+            dev.updateStateOnServer('storageWattsNow', value=int(self.finalDict['storage'][0]['wNow']))
+            dev.updateStateOnServer('storageState', value=self.finalDict['storage'][0]['state'])
+            dev.updateStateOnServer('storagePercentFull', value=int(self.finalDict['storage'][0]['percentFull']))
+
+            #dev.stateListOrDisplayStateIdChanged()
+            update_time = t.strftime("%m/%d/%Y at %H:%M")
+            dev.updateStateOnServer('deviceLastUpdated', value=update_time)
+            reading_time = datetime.datetime.fromtimestamp(self.finalDict['production'][0]['readingTime'])
+            #format_reading_time = t.strftime()
+            dev.updateStateOnServer('readingTime', value=str(reading_time))
+            timeDifference = int(t.time() - t.mktime(reading_time.timetuple()))
+            dev.updateStateOnServer('secsSinceReading', value=timeDifference)
 
 
-        dev.stateListOrDisplayStateIdChanged()
-        update_time = t.strftime("%m/%d/%Y at %H:%M")
-        dev.updateStateOnServer('deviceLastUpdated', value=update_time)
-        # dev.updateStateOnServer('deviceTimestamp', value=t.time())
+        except Exception as error:
+             if self.debugLevel >= 2:
+                 self.errorLog(u"Saving Values errors:"+str(error.message))
 
     def setStatestonil(self, dev):
         if self.debugLevel >= 2:
@@ -373,7 +394,7 @@ class Plugin(indigo.PluginBase):
                 # Get the data.
 
                 # If device is offline wait for 60 seconds until rechecking
-                if dev.states['deviceIsOnline'] == False and timeDifference >= 60:
+                if dev.states['deviceIsOnline'] == False and timeDifference >= 180:
                     if self.debugLevel >= 2:
                         self.debugLog(u"Offline: Refreshing device: {0}".format(dev.name))
                     self.finalDict = self.getTheData(dev)
@@ -383,7 +404,8 @@ class Plugin(indigo.PluginBase):
                     if self.debugLevel >= 2:
                         self.debugLog(u"Online: Refreshing device: {0}".format(dev.name))
                     self.finalDict = self.getTheData(dev)
-                    self.PanelDict = self.getthePanels(dev)
+                    #ignore panel level data until later
+                    #self.PanelDict = self.getthePanels(dev)
 
 
                     # Put the final values into the device states - only if online

@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
 <Devices>
 
-  <Device type="custom" id="EmbyPluginDevice">
-    <Name>Enphase Envoy IP Address</Name>
+  <Device type="custom" id="EmbyEnvoyDevice">
+    <Name>Enphase Envoy-S</Name>
 
     <ConfigUI>
       <Field id="label3" type="label" fontColor="black">
-        <Label>Envoy IP:</Label>
+        <Label>Envoy IP Address:</Label>
       </Field>      
             <Field id="label4" type="label" fontSize="small" fontColor="black">
         <Label></Label>
@@ -22,16 +22,13 @@
         <Label> Envoy IP - will need to enable static IP address in DHCP Server</Label>
       </Field>
 
-      <Field id="label5" type="label" fontColor="black">
-        <Label>Ignore Emby Theme files</Label>
-      </Field>
 
       <Field
         id="envoySerial" type="textfield">
         <Label>Envoy Serial Number</Label>
       </Field>
       <Field id="example5" type="label" fontSize="small" fontColor="black" alignText="right">
-        <Label>To Enable Array Access</Label>
+        <Label>To Enable per Panel Data Access</Label>
       </Field>
 
 <!-- Substitution -->
@@ -58,16 +55,64 @@
       </State>
 
 
-     <State id="productionWatts">
+     <State id="productionWattsNow">
         <ValueType>Number</ValueType>
         <TriggerLabel>Power Production (watts)</TriggerLabel>
         <ControlPageLabel>Power Production (watts)</ControlPageLabel>
       </State>
 
-      <State id="consumptionWatts">
+      <State id="consumptionWattsNow">
         <ValueType>Number</ValueType>
         <TriggerLabel>Power consumption (watts)</TriggerLabel>
         <ControlPageLabel>Power consumption (watts)</ControlPageLabel>
+      </State>
+
+      <State id="netConsumptionWattsNow">
+        <ValueType>Number</ValueType>
+        <TriggerLabel>Net Use of Power Watts</TriggerLabel>
+        <ControlPageLabel>Net Use of Power (Watts)</ControlPageLabel>
+      </State>
+
+
+     <State id="production7days">
+        <ValueType>Number</ValueType>
+        <TriggerLabel>Power Production 7 days(watts)</TriggerLabel>
+        <ControlPageLabel>Power Production 7 days (watts)</ControlPageLabel>
+      </State>
+     <State id="consumption7days">
+        <ValueType>Number</ValueType>
+        <TriggerLabel>Power Consumption 7 days(watts)</TriggerLabel>
+        <ControlPageLabel>Power Consumption 7 days (watts)</ControlPageLabel>
+      </State>
+      <State id="readingTime">
+        <ValueType>Number</ValueType>
+        <TriggerLabel>Time of Completed Power Reading</TriggerLabel>
+        <ControlPageLabel>Time of Completed Power reading</ControlPageLabel>
+      </State>
+      <State id="secsSinceReading">
+        <ValueType>Number</ValueType>
+        <TriggerLabel>Minutes since last Power Reading</TriggerLabel>
+        <ControlPageLabel>Minutes since last Power reading</ControlPageLabel>
+      </State>
+      <State id="storageActiveCount">
+        <ValueType>Number</ValueType>
+        <TriggerLabel>Storage Number active</TriggerLabel>
+        <ControlPageLabel>Storage Number Active</ControlPageLabel>
+      </State>
+     <State id="storageWattsNow">
+        <ValueType>Number</ValueType>
+        <TriggerLabel>Storage Watts Now</TriggerLabel>
+        <ControlPageLabel>Storage Watts Now</ControlPageLabel>
+      </State>
+      <State id="storageState">
+        <ValueType>String</ValueType>
+        <TriggerLabel>Storage State</TriggerLabel>
+        <ControlPageLabel>Storage State</ControlPageLabel>
+      </State>
+      <State id="storagePercentFull">
+        <ValueType>Number</ValueType>
+        <TriggerLabel>Storage percent Full</TriggerLabel>
+        <ControlPageLabel>Storage percent Full</ControlPageLabel>
       </State>
 
 
