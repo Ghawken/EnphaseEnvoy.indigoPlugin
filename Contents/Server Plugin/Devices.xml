@@ -2,11 +2,11 @@
 <Devices>
 
   <Device type="custom" id="EmbyPluginDevice">
-    <Name>Emby Client Device</Name>
+    <Name>Enphase Envoy IP Address</Name>
 
     <ConfigUI>
       <Field id="label3" type="label" fontColor="black">
-        <Label>Emby Server and Port:</Label>
+        <Label>Envoy IP:</Label>
       </Field>      
             <Field id="label4" type="label" fontSize="small" fontColor="black">
         <Label></Label>
@@ -16,26 +16,10 @@
       
       <Field
         id="sourceXML" type="textfield">
-        <Label>URL/Path:Port</Label>
+        <Label>IP Address</Label>
       </Field>
       <Field id="example3" type="label" fontSize="small" fontColor="black" alignText="right" >
-        <Label> (Must have installed Emby Server Plugin FrontView+API and setup correctly</Label>
-      </Field>
-            <Field id="example4" type="label" fontSize="small" fontColor="black" alignText="right" >
-        <Label> Available in Emby Server Catalog - under MetaData section)</Label>
-      </Field>
-
-
-      <Field id="label1" type="label" fontSize="small" fontColor="black" alignText="right">
-        <Label>Examples:</Label>
-      </Field>
-
-      <Field id="example1" type="label" fontSize="small" fontColor="black" alignText="right">
-        <Label>URL:  192.168.1.206:8096</Label>
-      </Field>
-
-      <Field id="example2" type="label" fontSize="small" fontColor="black" alignText="right">
-        <Label>URL:  192.168.1.1:8099</Label>
+        <Label> Envoy IP - will need to enable static IP address in DHCP Server</Label>
       </Field>
 
       <Field id="label5" type="label" fontColor="black">
@@ -43,13 +27,12 @@
       </Field>
 
       <Field
-        id="ignoreTheme" type="checkbox">
-        <Label>Enable/Disable</Label>
+        id="envoySerial" type="textfield">
+        <Label>Envoy Serial Number</Label>
       </Field>
       <Field id="example5" type="label" fontSize="small" fontColor="black" alignText="right">
-        <Label>Ignores playback of Emby theme files both audio and video</Label>
+        <Label>To Enable Array Access</Label>
       </Field>
-
 
 <!-- Substitution -->
 
@@ -66,61 +49,29 @@
         <ValueType>String</ValueType>
         <TriggerLabel>Device Last Updated</TriggerLabel>
         <ControlPageLabel>Device Last Updated</ControlPageLabel>
-      </State>
-      
-      <State id="playbackTitle">
-        <ValueType>String</ValueType>
-        <TriggerLabel>Playback Title</TriggerLabel>
-        <ControlPageLabel>Title of Playing File</ControlPageLabel>
-      </State>
-	 <State id="playbackFilename">
-        <ValueType>String</ValueType>
-        <TriggerLabel>Playback Filename</TriggerLabel>
-        <ControlPageLabel>Filename of Playing File</ControlPageLabel>
-      </State>
-	  <State id="playbackState">
-        <ValueType>String</ValueType>
-        <TriggerLabel>Playback State</TriggerLabel>
-        <ControlPageLabel>State of Player</ControlPageLabel>
-      </State>
-      <State id="playbackOverview">
-        <ValueType>String</ValueType>
-        <TriggerLabel>Playback Overview/Plot</TriggerLabel>
-        <ControlPageLabel>Overview/Plot of item</ControlPageLabel>
-      </State>
-      <State id="playbackMediatype">
-        <ValueType>String</ValueType>
-        <TriggerLabel>Playback Mediatype</TriggerLabel>
-        <ControlPageLabel>MediaType of current playing item</ControlPageLabel>
-      </State>
-     <State id="playbackDuration">
-        <ValueType>String</ValueType>
-        <TriggerLabel>Playback Duration</TriggerLabel>
-        <ControlPageLabel>Duration of current playing item</ControlPageLabel>
-      </State>
-		<State id="playbackPosition">
-        <ValueType>String</ValueType>
-        <TriggerLabel>Playback Position</TriggerLabel>
-        <ControlPageLabel>Position of current playing item</ControlPageLabel>
-      </State>
-      <State id="playbackPercentage">
+           </State>
+
+      <State id="numberInverters">
         <ValueType>Number</ValueType>
-        <TriggerLabel>Playback Percentage</TriggerLabel>
-        <ControlPageLabel>Playback Percentage</ControlPageLabel>
+        <TriggerLabel>Number of MicroInverters</TriggerLabel>
+        <ControlPageLabel>Number of Microinverters</ControlPageLabel>
       </State>
-      
-      
-      <State id="playbackThumb">
-        <ValueType>String</ValueType>
-        <TriggerLabel>Playback URL for Thumbnail</TriggerLabel>
-        <ControlPageLabel>Thumbnail URL</ControlPageLabel>
+
+
+     <State id="productionWatts">
+        <ValueType>Number</ValueType>
+        <TriggerLabel>Power Production (watts)</TriggerLabel>
+        <ControlPageLabel>Power Production (watts)</ControlPageLabel>
       </State>
-     <State id="playbackFanart">
-        <ValueType>String</ValueType>
-        <TriggerLabel>Playback Fanart URL</TriggerLabel>
-        <ControlPageLabel>Fanart URL</ControlPageLabel>
+
+      <State id="consumptionWatts">
+        <ValueType>Number</ValueType>
+        <TriggerLabel>Power consumption (watts)</TriggerLabel>
+        <ControlPageLabel>Power consumption (watts)</ControlPageLabel>
       </State>
-      
+
+
+
     </States>
 
     <UiDisplayStateId>deviceIsOnline</UiDisplayStateId>

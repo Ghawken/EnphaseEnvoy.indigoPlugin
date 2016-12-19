@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Emby Start Plugin
+Enphase Indigo Plugin
 Authors: See (repo)
 
 Works in combination with FrontViewAPI+ Emby Plugin to display info for
@@ -17,7 +17,9 @@ import requests
 import urllib2
 import os
 import shutil
+import flatdict
 from ghpu import GitHubPluginUpdater
+from requests.auth import HTTPDigestAuth
 
 try:
     import indigo
@@ -50,7 +52,6 @@ class Plugin(indigo.PluginBase):
         self.updater = GitHubPluginUpdater(self)
         self.configUpdaterInterval = self.pluginPrefs.get('configUpdaterInterval', 24)
         self.configUpdaterForceUpdate = self.pluginPrefs.get('configUpdaterForceUpdate', False)
-        self.WaitInterval = 1
 
         # Convert old debugLevel scale to new scale if needed.
         # =============================================================
@@ -93,9 +94,43 @@ class Plugin(indigo.PluginBase):
     def deviceStartComm(self, dev):
         if self.debugLevel >= 2:
             self.debugLog(u"deviceStartComm() method called.")
-        indigo.server.log(u"Starting Emby device: " + dev.name)
+        indigo.server.log(u"Starting Enphase/Envoy device: " + dev.name)
         dev.stateListOrDisplayStateIdChanged()
         dev.updateStateOnServer('deviceIsOnline', value=True, uiValue="Online")
+        dev.stateListOrDisplayStateIdChanged()
+
+
+# Default Indigo Plugin StateList
+# This overrides and pulls the current state list (from devices.xml and then adds whatever to it via these calls
+# http://forums.indigodomo.com/viewtopic.php?f=108&t=12898
+# for summary
+# Issue being that with trigger and control page changes will add the same to all devices unless check what device within below call - should be an issue for this plugin
+
+    def getDeviceStateList(self,dev):
+        stateList = indigo.PluginBase.getDeviceStateList(self, dev)
+        if stateList is not None:
+            # Add any dynamic states onto the device based on the node's characteristics.
+                someNumState = self.getDeviceStateDictForNumberType(u"someNumState", u"Some Level Label",
+                                                                    u"Some Level Label")
+                someStringState = self.getDeviceStateDictForStringType(u"someStringState", u"Some Level Label",
+                                                                       u"Some Level Label")
+                someOnOffBoolState = self.getDeviceStateDictForBoolOnOffType(u"someOnOffBoolState", u"Some Level Label",
+                                                                             u"Some Level Label")
+                someYesNoBoolState = self.getDeviceStateDictForBoolYesNoType(u"someYesNoBoolState", u"Some Level Label",
+                                                                             u"Some Level Label")
+                someOneZeroBoolState = self.getDeviceStateDictForBoolOneZeroType(u"someOneZeroBoolState",
+                                                                                 u"Some Level Label",
+                                                                                 u"Some Level Label")
+                someTrueFalseBoolState = self.getDeviceStateDictForBoolTrueFalseType(u"someTrueFalseBoolState",
+                                                                                     u"Some Level Label",
+                                                                                     u"Some Level Label")
+                stateList.append(someNumState)
+                stateList.append(someStringState)
+                stateList.append(someOnOffBoolState)
+                stateList.append(someYesNoBoolState)
+                stateList.append(someOneZeroBoolState)
+                stateList.append(someTrueFalseBoolState)
+        return stateList
 
     # Shut 'em down.
     def deviceStopComm(self, dev):
@@ -115,8 +150,6 @@ class Plugin(indigo.PluginBase):
         self.updater.update()
 
     def runConcurrentThread(self):
-        if os.path.exists('/Library/Application Support/Perceptive Automation/images/EmbyPlugin') == 0:
-            os.makedirs('/Library/Application Support/Perceptive Automation/images/EmbyPlugin')
 
         try:
             while True:
@@ -130,10 +163,10 @@ class Plugin(indigo.PluginBase):
                     # self.debugLog(len(dev.states))
                     self.refreshDataForDev(dev)
 
-                self.sleep(1)
+                self.sleep(120)
 
         except self.StopThread:
-            self.debugLog(u'Restarting/or error. Stopping Emby thread.')
+            self.debugLog(u'Restarting/or error. Stopping Enphase/Envoy thread.')
             pass
 
     def shutdown(self):
@@ -185,12 +218,12 @@ class Plugin(indigo.PluginBase):
 
         # dev.updateStateOnServer('deviceIsOnline', value=True, uiValue="Download")
         try:
-            url = 'http://' + dev.pluginProps['sourceXML'] + '/FrontView'
+            url = 'http://' + dev.pluginProps['sourceXML'] + '/production.json'
             r = requests.get(url)
             result = r.json()
             if self.debugLevel >= 2:
                 self.debugLog(u"Result:" + unicode(result))
-            self.WaitInterval = 1
+
             dev.updateStateOnServer('deviceIsOnline', value=True, uiValue="Online")
             dev.setErrorStateOnServer(None)
             # dev.updateStateOnServer('deviceTimestamp', value=t.time())
@@ -208,125 +241,43 @@ class Plugin(indigo.PluginBase):
             result = ""
             return result
 
-    def remoteCall(self, pluginAction, dev, PlayAction):
-        try:
-            url = 'http://' + dev.pluginProps['sourceXML'] + '/FrontView/Play/' + PlayAction
-            r = requests.post(url)
-        except Exception as error:
-            self.errorLog(u"Error RemoteCall:" + unicode(error))
-            return
-
-    def RemotePlay(self, pluginAction, dev):
+    def getthePanels(self, dev):
+        """
+        The getTheData() method is used to retrieve FrontView API Client Data
+        """
         if self.debugLevel >= 2:
-            self.debugLog(u"Action Called: " + unicode(pluginAction))
-        self.remoteCall(pluginAction, dev, "Unpause")
-        return
+            self.debugLog(u"getthePanels Enphase Envoy method called.")
 
-    def RemotePlayPause(self, pluginAction, dev):
-        if self.debugLevel >= 2:
-            self.debugLog(u"Action Called: " + unicode(pluginAction))
+        if dev.pluginProps['envoySerial'] is not None:
 
-        if dev.states['playbackState'] == "Playing":
-            self.remoteCall(pluginAction, dev, "Pause")
-        elif dev.states['playbackState'] == "Paused":
-            self.remoteCall(pluginAction, dev, "Unpause")
-        return
 
-    def RemotePause(self, pluginAction, dev):
-        if self.debugLevel >= 2:
-            self.debugLog(u"Action Called: " + unicode(pluginAction))
-        self.remoteCall(pluginAction, dev, "Pause")
-        return
+        # dev.updateStateOnServer('deviceIsOnline', value=True, uiValue="Download")
+            try:
+                url = 'http://' + dev.pluginProps['sourceXML'] + '/api/v1/production/inverters'
+                password = dev.pluginProps['envoySerial']
+                password = password[-6:]
 
-    def RemoteFastForward(self, pluginAction, dev):
-        if self.debugLevel >= 2:
-            self.debugLog(u"Action Called: " + unicode(pluginAction))
-        self.remoteCall(pluginAction, dev, "FastForward")
-        return
+                if self.debugLevel >=2:
+                    self.debugLog(u"getthePanels: Password:"+unicode(password))
 
-    def RemoteRewind(self, pluginAction, dev):
-        if self.debugLevel >= 2:
-            self.debugLog(u"Action Called: " + unicode(pluginAction))
-        self.remoteCall(pluginAction, dev, "Rewind")
-        return
+                r = requests.get(url, auth=HTTPDigestAuth('envoy',password))
+                result = r.json()
+                if self.debugLevel >= 2:
+                    self.debugLog(u"Inverter Result:" + unicode(result))
 
-    def RemoteStop(self, pluginAction, dev):
-        if self.debugLevel >= 2:
-            self.debugLog(u"Action Called: " + unicode(pluginAction))
-        self.remoteCall(pluginAction, dev, "Stop")
-        return
+                return result
 
-    def RemoteNextTrack(self, pluginAction, dev):
-        if self.debugLevel >= 2:
-            self.debugLog(u"Action Called: " + unicode(pluginAction))
-        self.remoteCall(pluginAction, dev, "NextTrack")
-        return
+            except Exception as error:
 
-    def RemotePreviousTrack(self, pluginAction, dev):
-        if self.debugLevel >= 2:
-            self.debugLog(u"Action Called: " + unicode(pluginAction))
-        self.remoteCall(pluginAction, dev, "PreviousTrack")
-        return
+                indigo.server.log(u"Error connecting to Device:" + dev.name)
 
-    def processArt(self, dev):
-        try:
-            if self.finalDict['IsPlaying']:
-                Thumbvalue = "http://" + dev.pluginProps['sourceXML'] + "/Items/" + self.finalDict[
-                    'BackdropItemId'] + "/Images/Primary"
-                Fanartvalue = "http://" + dev.pluginProps['sourceXML'] + "/Items/" + self.finalDict[
-                    'BackdropItemId'] + "/Images/Backdrop"
-            else:
-                Thumbvalue = ""
-                Fanartvalue = ""
+                if self.debugLevel >= 2:
+                    self.debugLog(u"Device is offline. No data to return. ")
 
-            if self.debugLevel >= 2:
-                self.debugLog("Thumb Value:" + str(Thumbvalue))
-                self.debugLog("Thumb Current State:" + str(dev.states['playbackThumb']))
+                # dev.updateStateOnServer('deviceTimestamp', value=t.time())
 
-            # Check if Thumbvalue changed and make new file
-
-            if str(Thumbvalue) != str(dev.states['playbackThumb']):
-
-                if self.finalDict['IsPlaying']:
-                    reqObj = urllib2.Request(Thumbvalue)
-                    fileObj = urllib2.urlopen(reqObj)
-                    localFile = open(
-                        "/Library/Application Support/Perceptive Automation/images/EmbyPlugin/Thumbnail_art.png", "wb")
-                    localFile.write(fileObj.read())
-                    localFile.close()
-                    if self.debugLevel >= 2:
-                        self.debugLog(u"----- New Thumbail file created -------")
-                else:
-
-                    if self.debugLevel >= 2:
-                        self.debugLog(u"Nothing is playing - Replacing Thumb Artwork Files")
-                    shutil.copy2("embyBlankThumb.png",
-                                 "/Library/Application Support/Perceptive Automation/images/EmbyPlugin/Thumbnail_art.png")
-
-            if Fanartvalue != dev.states['playbackFanart']:
-                if self.finalDict['IsPlaying']:
-                    reqObj = urllib2.Request(Fanartvalue)
-                    fileObj = urllib2.urlopen(reqObj)
-                    localFile = open(
-                        "/Library/Application Support/Perceptive Automation/images/EmbyPlugin/Fanart_art.png", "wb")
-                    localFile.write(fileObj.read())
-                    localFile.close()
-                    if self.debugLevel >= 2:
-                        self.debugLog(u"------- New Fanart file created ------")
-                else:
-                    # if nothing playing delete the fanart files (else will continue to show wrong images)
-                    # but this option - gives no URL error
-                    # need to copy or create a blank png file - use shcopy - done.
-                    if self.debugLevel >= 2:
-                        self.debugLog(u"Nothing is playing - Replacing Fanart Files")
-                    shutil.copy2("embyBlankFanart.png",
-                                 "/Library/Application Support/Perceptive Automation/images/EmbyPlugin/Fanart_art.png")
-                # hutil.copy2("blank_art.jpg","/Library/Application Support/Perceptive Automation/images/EmbyPlugin/Thumbnail_art.png")
-                # os.remove("/Library/Application Support/Perceptive Automation/images/EmbyPlugin/Thumbnail_art.png")
-                # os.remove("/Library/Application Support/Perceptive Automation/images/EmbyPlugin/Fanart_art.png")
-        except:
-            self.debugLog(u"Error within Process Artwork")
-        return
+                result = ""
+                return result
 
     def parseStateValues(self, dev):
         """
@@ -336,64 +287,8 @@ class Plugin(indigo.PluginBase):
         if self.debugLevel >= 2:
             self.debugLog(u"Saving Values method called.")
 
-        if self.finalDict is not None:
-            self.processArt(dev)
 
-        if self.finalDict['IsPlaying']:
-            if (self.finalDict['Filename'].endswith('theme.mp3') or self.finalDict['Filename'].endswith('theme.mp4')) and dev.pluginProps['ignoreTheme']:
-                self.setStatestonil(dev)
-                return
-            dev.updateStateOnServer(u"playbackTitle", value=self.finalDict['Title'])
-            dev.updateStateOnServer(u"playbackMediatype", value=self.finalDict['MediaType'])
-            dev.updateStateOnServer(u"playbackOverview", value=self.finalDict['Overview'])
-            dev.updateStateOnServer(u"playbackFilename", value=self.finalDict['Filename'])
-
-            if self.finalDict['TimePosition'] == 0:
-                if self.debugLevel >= 2:
-                    self.debugLog(u"Time Position Equals 0: Changing to 1.")
-                self.finalDict['TimePosition'] = 1
-
-            if self.finalDict['Duration'] > 0:
-                duration_seconds = int(self.finalDict['Duration'] / 10000000.00)
-            elif self.finalDict['Duration'] == 0:
-                if self.debugLevel >= 2:
-                    self.debugLog(u"Duraton Position Equals 0: Changing to TimePosition.")
-                duration_seconds = int(self.finalDict['TimePosition'] / 10000000.00)
-
-            if duration_seconds == 0:
-                duration_seconds = 1
-                if self.debugLevel >= 2:
-                    self.debugLog(u"Duration_Seconds Equals 0: Changing to 1.")
-
-            duration_time = datetime.timedelta(seconds=duration_seconds)
-            dev.updateStateOnServer(u"playbackDuration", value=str(duration_time))
-
-            position_seconds = int(self.finalDict['TimePosition'] / 10000000.00)
-            position_time = datetime.timedelta(seconds=position_seconds)
-            dev.updateStateOnServer(u"playbackPosition", value=str(position_time))
-
-            percentage = int(position_time.total_seconds() / duration_time.total_seconds() * 100)
-
-            dev.updateStateOnServer(u'playbackPercentage', value=percentage)
-            dev.updateStateOnServer(u"playbackThumb",
-                                    value="http://" + dev.pluginProps['sourceXML'] + "/Items/" + self.finalDict[
-                                        'BackdropItemId'] + "/Images/Primary")
-            dev.updateStateOnServer(u"playbackFanart",
-                                    value="http://" + dev.pluginProps['sourceXML'] + "/Items/" + self.finalDict[
-                                        'BackdropItemId'] + "/Images/Backdrop")
-
-            if self.finalDict['IsPaused']:
-                dev.updateStateOnServer(u"playbackState", value=u"Paused")
-                dev.updateStateImageOnServer(indigo.kStateImageSel.AvPaused)
-            else:
-                dev.updateStateOnServer(u"playbackState", value=u"Playing")
-                dev.updateStateImageOnServer(indigo.kStateImageSel.AvPlaying)
-        elif dev.states['playbackFilename'] != "":
-            if self.debugLevel >= 2:
-                self.debugLog(u"Calling Setting States to nil.")
-            self.setStatestonil(dev)
-
-
+        dev.updateStateOnServer('numberInverters', value=int(self.finalDict['production'][0]['activeCount']))
         dev.stateListOrDisplayStateIdChanged()
         update_time = t.strftime("%m/%d/%Y at %H:%M")
         dev.updateStateOnServer('deviceLastUpdated', value=update_time)
@@ -402,17 +297,7 @@ class Plugin(indigo.PluginBase):
     def setStatestonil(self, dev):
         if self.debugLevel >= 2:
             self.debugLog(u'setStates to nil run')
-        dev.updateStateOnServer(u"playbackState", value=u"False")
-        dev.updateStateImageOnServer(indigo.kStateImageSel.AvStopped)
-        dev.updateStateOnServer(u"playbackThumb", value="")
-        dev.updateStateOnServer(u"playbackFanart", value="")
-        dev.updateStateOnServer(u"playbackTitle", value="")
-        dev.updateStateOnServer(u"playbackFilename", value="")
-        dev.updateStateOnServer(u"playbackMediatype", value="")
-        dev.updateStateOnServer(u"playbackOverview", value="")
-        dev.updateStateOnServer(u"playbackDuration", value="")
-        dev.updateStateOnServer(u"playbackPosition", value="")
-        dev.updateStateOnServer(u"playbackPercentage", value="")
+
 
 
     def refreshDataAction(self, valuesDict):
@@ -482,7 +367,7 @@ class Plugin(indigo.PluginBase):
                     if self.debugLevel >= 2:
                         self.debugLog(u"Online: Refreshing device: {0}".format(dev.name))
                     self.finalDict = self.getTheData(dev)
-
+                    self.PanelDict = self.getthePanels(dev)
                     # Throw the data to the appropriate module to flatten it.
                     # dev.updateStateOnServer('deviceIsOnline', value=True, uiValue="Processing")
                     # self.finalDict = self.rawData

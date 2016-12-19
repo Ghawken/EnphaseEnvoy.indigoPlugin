@@ -3,24 +3,24 @@
 <plist version="1.0">
 <dict>
 	<key>PluginVersion</key>
-	<string>0.0.7</string>
+	<string>0.0.1</string>
 	<key>ServerApiVersion</key>
 	<string>1.0.0</string>
 	<key>IwsApiVersion</key>
 	<string>1.0.0</string>
 	<key>CFBundleDisplayName</key>
-	<string>Emby Plugin</string>
+	<string>Enphase Envoy Plugin</string>
 	<key>CFBundleName</key>
-	<string>EmbyPlugin</string>
+	<string>EnphaseEnvoyPlugin</string>
         <key>CFBundleIdentifier</key>
-	<string>com.GlennNZ.indigoplugin.EmbyPlugin</string>
+	<string>com.GlennNZ.indigoplugin.EnphaseEnvoy</string>
 	<key>CFBundleVersion</key>
 	<string>1.0.0</string>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>
 			<key>CFBundleURLName</key>
-			<string>https://github.com/Ghawken/Indigo-EmbyPlugin</string>
+			<string>https://github.com/Ghawken/Indigo-EnphaseEnvoy</string>
 		</dict>
 	</array>
 </dict>
