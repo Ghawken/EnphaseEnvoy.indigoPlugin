@@ -107,6 +107,9 @@ class Plugin(indigo.PluginBase):
 # Issue being that with trigger and control page changes will add the same to all devices unless check what device within below call - should be an issue for this plugin
 
     def getDeviceStateList(self,dev):
+        if self.debugLevel>=2:
+            self.debugLog(u'getDeviceStateList called')
+
         stateList = indigo.PluginBase.getDeviceStateList(self, dev)
         if stateList is not None:
             # Add any dynamic states onto the device based on the node's characteristics.
@@ -130,6 +133,17 @@ class Plugin(indigo.PluginBase):
                 stateList.append(someYesNoBoolState)
                 stateList.append(someOneZeroBoolState)
                 stateList.append(someTrueFalseBoolState)
+                try:
+
+                    if self.PanelDict is not None:
+                        x=0
+                        for array in self.PanelDict:
+                            numberArray = "Panel"+str(x)
+                            Statearray = self.getDeviceStateDictForNumberType(numberArray,numberArray,numberArray)
+                            stateList.append(Statearray)
+                            x=x+1
+                except Exception as error:
+                    self.errorLog(unicode('error in statelist Panel:'+error.message))
         return stateList
 
     # Shut 'em down.
@@ -289,6 +303,8 @@ class Plugin(indigo.PluginBase):
 
 
         dev.updateStateOnServer('numberInverters', value=int(self.finalDict['production'][0]['activeCount']))
+
+
         dev.stateListOrDisplayStateIdChanged()
         update_time = t.strftime("%m/%d/%Y at %H:%M")
         dev.updateStateOnServer('deviceLastUpdated', value=update_time)
@@ -368,9 +384,7 @@ class Plugin(indigo.PluginBase):
                         self.debugLog(u"Online: Refreshing device: {0}".format(dev.name))
                     self.finalDict = self.getTheData(dev)
                     self.PanelDict = self.getthePanels(dev)
-                    # Throw the data to the appropriate module to flatten it.
-                    # dev.updateStateOnServer('deviceIsOnline', value=True, uiValue="Processing")
-                    # self.finalDict = self.rawData
+
 
                     # Put the final values into the device states - only if online
                 if dev.states['deviceIsOnline']:
