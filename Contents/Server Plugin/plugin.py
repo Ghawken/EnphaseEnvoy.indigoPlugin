@@ -3,10 +3,9 @@
 
 """
 Enphase Indigo Plugin
-Authors: See (repo)
+Authors: GlennNZ
 
-Works in combination with FrontViewAPI+ Emby Plugin to display info for
-single Emby client.
+Enphase Plugin
 
 """
 
@@ -43,7 +42,7 @@ kDefaultPluginPrefs = {
 class Plugin(indigo.PluginBase):
     def __init__(self, pluginId, pluginDisplayName, pluginVersion, pluginPrefs):
         indigo.PluginBase.__init__(self, pluginId, pluginDisplayName, pluginVersion, pluginPrefs)
-        self.debugLog(u"Initializing Emby plugin.")
+        self.debugLog(u"Initializing Enphase plugin.")
 
         self.debug = self.pluginPrefs.get('showDebugInfo', False)
         self.debugLevel = self.pluginPrefs.get('showDebugLevel', "1")
@@ -162,7 +161,7 @@ class Plugin(indigo.PluginBase):
     def deviceStopComm(self, dev):
         if self.debugLevel >= 2:
             self.debugLog(u"deviceStopComm() method called.")
-        indigo.server.log(u"Stopping Emby device: " + dev.name)
+        indigo.server.log(u"Stopping Enphase device: " + dev.name)
         dev.updateStateOnServer('deviceIsOnline', value=False, uiValue="Disabled")
 
     def forceUpdate(self):
@@ -213,9 +212,7 @@ class Plugin(indigo.PluginBase):
 
     def startup(self):
         if self.debugLevel >= 2:
-            self.debugLog(u"Starting EmbyPlugin. startup() method called.")
-        if os.path.exists('/Library/Application Support/Perceptive Automation/images/EmbyPlugin') == 0:
-            os.makedirs('/Library/Application Support/Perceptive Automation/images/EmbyPlugin')
+            self.debugLog(u"Starting Enphase Plugin. startup() method called.")
 
         # See if there is a plugin update and whether the user wants to be notified.
         try:
@@ -513,7 +510,7 @@ class Plugin(indigo.PluginBase):
                     self.refreshDataForDev(dev)
 
             else:
-                indigo.server.log(u"No Emby Client devices have been created.")
+                indigo.server.log(u"No Enphase Client devices have been created.")
 
             return True
 
