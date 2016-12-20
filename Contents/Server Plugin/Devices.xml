@@ -31,12 +31,35 @@
         <Label>To Enable per Panel Data Access</Label>
       </Field>
 
+      <Field id="activatePanels" type="checkbox" defaultValue="false" tooltip="Would you like Panel Devices?">
+      <Label>Enable Panel Data?:</Label>
+      <Description>Would you to have per panel Data?</Description>
+          </Field>
+
+        <Field id="label11" type="label" alignText="right" fontColor="black">
+        <Label>(Enable and Generate Panels Below)</Label>
+      </Field>
+
+
+
       <Field id="generatePanelDevices"
 				   type="button"
-				   tooltip="Click on this button to Generate one device for every Panel">
+				   tooltip="Click on this button to Generate one device for every Panel"
+                visibleBindingId="activatePanels" visibleBindingValue="true">
 				<Label>Generate Panel Indigo Devices</Label>
 				<Title>Generate Panels</Title>
 				<CallbackMethod>generatePanelDevices</CallbackMethod>
+	</Field>
+     <Field id="deletePanelDevices"
+				   type="button"
+				   tooltip="Click on this button to Generate one device for every Panel"
+                visibleBindingId="activatePanels" visibleBindingValue="false">
+				<Label>Delete Panel Indigo Devices</Label>
+				<Title>Delete Panels</Title>
+				<CallbackMethod>deletePanelDevices</CallbackMethod>
+
+
+
     </Field>
 <!-- Substitution -->
 
@@ -153,9 +176,6 @@
         <TriggerLabel>Device Last Updated</TriggerLabel>
         <ControlPageLabel>Device Last Updated</ControlPageLabel>
            </State>
-
-
-
       <State id="watts">
         <ValueType>Number</ValueType>
         <TriggerLabel>Power Generated</TriggerLabel>

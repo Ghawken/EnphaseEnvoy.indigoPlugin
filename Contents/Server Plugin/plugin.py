@@ -95,6 +95,16 @@ class Plugin(indigo.PluginBase):
         if self.debugLevel >= 2:
             self.debugLog(u"deviceStartComm() method called.")
         indigo.server.log(u"Starting Enphase/Envoy device: " + dev.name)
+
+        #self.errorLog(unicode(dev.model))
+
+        # CHECK IF PANEL - IF PANEL START OFFLINE
+        # IF ENVOY START ONLINE
+        if dev.model=='Enphase Panel':
+            #self.errorLog(' Enphase Panel')
+            dev.updateStateOnServer('deviceIsOnline', value=False, uiValue="Offline")
+            dev.stateListOrDisplayStateIdChanged()
+            return
         #dev.stateListOrDisplayStateIdChanged()
         dev.updateStateOnServer('deviceIsOnline', value=True, uiValue="Online")
         dev.stateListOrDisplayStateIdChanged()
@@ -228,15 +238,6 @@ class Plugin(indigo.PluginBase):
 
         return True, valuesDict
 
-    def fixErrorState(self, dev):
-        self.deviceNeedsUpdated = False
-        dev.stateListOrDisplayStateIdChanged()
-        update_time = t.strftime("%m/%d/%Y at %H:%M")
-        dev.updateStateOnServer('deviceLastUpdated', value=update_time)
-        if self.debugLevel >= 2:
-            self.debugLog(u"Update Time method called.")
-            # dev.updateStateOnServer('deviceIsOnline', value=False, uiValue="Offline")
-
     def getTheData(self, dev):
         """
         The getTheData() method is used to retrieve FrontView API Client Data
@@ -244,7 +245,7 @@ class Plugin(indigo.PluginBase):
         if self.debugLevel >= 2:
             self.debugLog(u"getTheData FrontViewAPI method called.")
 
-        # dev.updateStateOnServer('deviceIsOnline', value=True, uiValue="Download")
+                            # dev.updateStateOnServer('deviceIsOnline', value=True, uiValue="Download")
         try:
             url = 'http://' + dev.pluginProps['sourceXML'] + '/production.json'
             r = requests.get(url)
@@ -274,90 +275,89 @@ class Plugin(indigo.PluginBase):
 
         if self.debugLevel >= 2:
             self.debugLog(u'check thepanels called')
+        if dev.pluginProps['activatePanels']:
+            self.thePanels = self.getthePanels(dev)
+            try:
+                if self.thePanels is not None:
+                    x = 1
+                    update_time = t.strftime("%m/%d/%Y at %H:%M")
+                    for dev in indigo.devices.itervalues('self.EnphasePanelDevice'):
+                        deviceName = 'Enphase SolarPanel ' + str(x)
+                        dev.updateStateOnServer('watts',value=int(self.thePanels[x-1]['lastReportWatts']))
+                        dev.updateStateOnServer('serialNo', value=float(self.thePanels[x - 1]['serialNumber']))
+                        dev.updateStateOnServer('maxWatts', value=int(self.thePanels[x - 1]['maxReportWatts']))
+                        dev.updateStateOnServer('deviceLastUpdated', value=update_time)
+                        dev.updateStateOnServer('deviceIsOnline', value=True, uiValue="Online")
+                        x = x + 1
 
-        self.thePanels = self.getthePanels(dev)
-        try:
-            if self.thePanels is not None:
-                x = 1
-                update_time = t.strftime("%m/%d/%Y at %H:%M")
-                for dev in indigo.devices.itervalues('self.EnphasePanelDevice'):
-                    deviceName = 'Enphase SolarPanel ' + str(x)
-                    dev.updateStateOnServer('watts',value=int(self.thePanels[x-1]['lastReportWatts']))
-                    dev.updateStateOnServer('serialNo', value=float(self.thePanels[x - 1]['serialNumber']))
-                    dev.updateStateOnServer('maxWatts', value=int(self.thePanels[x - 1]['maxReportWatts']))
-                    dev.updateStateOnServer('deviceLastUpdated', value=update_time)
-                    x = x + 1
-
-
-        except Exception as error:
-            self.errorLog('error within checkthePanels'+unicode(error.message))
-            if self.debugLevel >= 2:
-                self.debugLog(u"Device is offline. No data to return. ")
-            dev.updateStateOnServer('deviceIsOnline', value=False, uiValue="Offline")
-            dev.setErrorStateOnServer(u'Offline')
-            result = ""
-            return result
+            except Exception as error:
+                self.errorLog('error within checkthePanels'+unicode(error.message))
+                if self.debugLevel >= 2:
+                    self.debugLog(u"Device is offline. No data to return. ")
+                dev.updateStateOnServer('deviceIsOnline', value=False, uiValue="Offline")
+                dev.setErrorStateOnServer(u'Offline')
+                result = ""
+                return result
+        return
 
     def checkPanelInventory(self,dev):
+
         if self.debugLevel >= 2:
             self.debugLog(u"checkPanelInventory Enphase Panels method called.")
 
-        #GET INVENTORY DATA
-        self.inventoryDict = self.getInventoryData(dev)
+        if dev.pluginProps['activatePanels']:
 
-        try:
-            if self.inventoryDict is not None:
-                x = 1
-                for dev in indigo.devices.itervalues('self.EnphasePanelDevice'):
-                    for devices in self.inventoryDict[0]['devices']:
-                        #if self.debugLevel >=2:
-                           # self.debugLog(u'checking serial numbers')
-                           # self.errorLog(u'device serial:'+str(int(dev.states['serialNo'])))
-                           # self.errorLog(u'panel serial no:'+str(devices['serial_num']))
+            self.inventoryDict = self.getInventoryData(dev)
 
-                        if int(dev.states['serialNo']) == int(devices['serial_num']):
-                            dev.updateStateOnServer('status',   value=str(devices['device_status']))
-                            dev.updateStateOnServer('modelNo', value=str(devices['part_num']))
-                            dev.updateStateOnServer('producing',   value=str(devices['producing']))
-                            dev.updateStateOnServer('communicating', value=str(devices['communicating']))
+            try:
+                if self.inventoryDict is not None:
+                    for dev in indigo.devices.itervalues('self.EnphasePanelDevice'):
+                        for devices in self.inventoryDict[0]['devices']:
+                            #if self.debugLevel >=2:
+                               # self.debugLog(u'checking serial numbers')
+                               # self.errorLog(u'device serial:'+str(int(dev.states['serialNo'])))
+                               # self.errorLog(u'panel serial no:'+str(devices['serial_num']))
 
+                            if int(dev.states['serialNo']) == int(devices['serial_num']):
+                                dev.updateStateOnServer('status',   value=str(devices['device_status']))
+                                dev.updateStateOnServer('modelNo', value=str(devices['part_num']))
+                                dev.updateStateOnServer('producing',   value=str(devices['producing']))
+                                dev.updateStateOnServer('communicating', value=str(devices['communicating']))
+                    return
 
+            except Exception as error:
+                self.errorLog('error within checkthePanels'+unicode(error.message))
+                if self.debugLevel >= 2:
+                    self.debugLog(u"Device is offline. No data to return. ")
+                dev.updateStateOnServer('deviceIsOnline', value=False, uiValue="Offline")
+                dev.setErrorStateOnServer(u'Offline')
+                result = ""
+                return result
 
-
-                    x = x + 1
-
-
-        except Exception as error:
-            self.errorLog('error within checkthePanels'+unicode(error.message))
-            if self.debugLevel >= 2:
-                self.debugLog(u"Device is offline. No data to return. ")
-            dev.updateStateOnServer('deviceIsOnline', value=False, uiValue="Offline")
-            dev.setErrorStateOnServer(u'Offline')
-            result = ""
-            return result
-
+        return
 
 
     def getInventoryData(self, dev):
 
         if self.debugLevel >= 2:
             self.debugLog(u"getInventoryData Enphase Panels method called.")
-            try:
-                url = 'http://' + dev.pluginProps['sourceXML'] + '/inventory.json'
-                r = requests.get(url)
-                result = r.json()
-                if self.debugLevel >= 2:
-                    self.debugLog(u"Inventory Result:" + unicode(result))
-                return result
+        try:
+            url = 'http://' + dev.pluginProps['sourceXML'] + '/inventory.json'
+            r = requests.get(url)
+            result = r.json()
+            if self.debugLevel >= 2:
+                self.debugLog(u"Inventory Result:" + unicode(result))
+            return result
 
-            except Exception as error:
+        except Exception as error:
 
-                indigo.server.log(u"Error connecting to Device:" + dev.name)
-                if self.debugLevel >= 2:
-                    self.debugLog(u"Device is offline. No data to return. ")
-                # dev.updateStateOnServer('deviceTimestamp', value=t.time())
-                result = ""
-                return result
+            indigo.server.log(u"Error connecting to Device:" + dev.name)
+            if self.debugLevel >= 2:
+                self.debugLog(u"Device is offline. No data to return. ")
+            # dev.updateStateOnServer('deviceTimestamp', value=t.time())
+            result = ""
+            return result
+
 
     def getthePanels(self, dev):
         if self.debugLevel >= 2:
@@ -447,7 +447,6 @@ class Plugin(indigo.PluginBase):
     def generatePanelDevices(self, valuesDict, typeId, devId):
         if self.debugLevel >= 2:
             self.debugLog(u'generate Panels run')
-
         try:
             #delete all panel devices first up
             for dev in indigo.devices.itervalues('self.EnphasePanelDevice'):
@@ -473,6 +472,18 @@ class Plugin(indigo.PluginBase):
         except Exception as error:
             self.errorLog(u'error within generate panels'+unicode(error.message))
 
+    def deletePanelDevices(self, valuesDict, typeId, devId):
+        if self.debugLevel >= 2:
+            self.debugLog(u'Delete Panels run')
+
+        try:
+            # delete all panel devices first up
+            for dev in indigo.devices.itervalues('self.EnphasePanelDevice'):
+                indigo.device.delete(dev.id)
+                if self.debugLevel > 2:
+                    self.debugLog(u'Deleting Device' + unicode(dev.id))
+        except Exception as error:
+            self.errorLog(u'error within delete panels' + unicode(error.message))
 
     def refreshDataAction(self, valuesDict):
         """
