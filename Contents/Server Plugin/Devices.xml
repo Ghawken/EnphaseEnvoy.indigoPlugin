@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <Devices>
 
-  <Device type="custom" id="EmbyEnvoyDevice">
+  <Device type="custom" id="EnphaseEnvoyDevice">
     <Name>Enphase Envoy-S</Name>
 
     <ConfigUI>
@@ -31,6 +31,13 @@
         <Label>To Enable per Panel Data Access</Label>
       </Field>
 
+      <Field id="generatePanelDevices"
+				   type="button"
+				   tooltip="Click on this button to Generate one device for every Panel">
+				<Label>Generate Panel Indigo Devices</Label>
+				<Title>Generate Panels</Title>
+				<CallbackMethod>generatePanelDevices</CallbackMethod>
+    </Field>
 <!-- Substitution -->
 
 </ConfigUI>
@@ -41,7 +48,17 @@
         <TriggerLabel>Device online?</TriggerLabel>
         <ControlPageLabel>Device online?</ControlPageLabel>
       </State>
-
+      <State id="powerStatus">
+        <ValueType>
+          <List>
+          <Option value="offline">Offline</Option>
+          <Option value="importing">Importing Energy</Option>
+           <Option value="exporting">Exporting Energy</Option>
+          </List>
+        </ValueType>
+        <TriggerLabel>Power Generation Status</TriggerLabel>
+        <ControlPageLabel>Power Generation Status</ControlPageLabel>
+      </State>
       <State id="deviceLastUpdated">
         <ValueType>String</ValueType>
         <TriggerLabel>Device Last Updated</TriggerLabel>
@@ -119,8 +136,51 @@
 
     </States>
 
-    <UiDisplayStateId>deviceIsOnline</UiDisplayStateId>
+    <UiDisplayStateId>powerStatus</UiDisplayStateId>
 
   </Device>
+  <Device type="custom" id="EnphasePanelDevice">
+    <Name>Enphase Panel</Name>
 
+    <States>
+      <State id="deviceIsOnline">
+        <ValueType>Boolean</ValueType>
+        <TriggerLabel>Device online?</TriggerLabel>
+        <ControlPageLabel>Device online?</ControlPageLabel>
+      </State>
+      <State id="deviceLastUpdated">
+        <ValueType>String</ValueType>
+        <TriggerLabel>Device Last Updated</TriggerLabel>
+        <ControlPageLabel>Device Last Updated</ControlPageLabel>
+           </State>
+
+
+
+      <State id="watts">
+        <ValueType>Number</ValueType>
+        <TriggerLabel>Power Generated</TriggerLabel>
+        <ControlPageLabel>Power Generated</ControlPageLabel>
+      </State>
+      <State id="serialNo">
+        <ValueType>Number</ValueType>
+        <TriggerLabel>Serial No Panel</TriggerLabel>
+        <ControlPageLabel>Serial No Panel</ControlPageLabel>
+      </State>
+      <State id="modelNo">
+        <ValueType>Number</ValueType>
+        <TriggerLabel>Model No Panel</TriggerLabel>
+        <ControlPageLabel>Model No Panel</ControlPageLabel>
+      </State>
+      <State id="status">
+        <ValueType>String</ValueType>
+        <TriggerLabel>Status Panel</TriggerLabel>
+        <ControlPageLabel>Status Panel</ControlPageLabel>
+      </State>
+
+
+    </States>
+
+    <UiDisplayStateId>watts</UiDisplayStateId>
+
+  </Device>
 </Devices>

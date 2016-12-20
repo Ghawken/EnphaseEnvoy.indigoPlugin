@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/EmbyPlugin.indigoPlugin.iml" filepath="$PROJECT_DIR$/.idea/EmbyPlugin.indigoPlugin.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/EnphaseEnvoy.indigoPlugin.iml" filepath="$PROJECT_DIR$/.idea/EnphaseEnvoy.indigoPlugin.iml" />
     </modules>
   </component>
 </project>

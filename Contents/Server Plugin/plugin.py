@@ -173,7 +173,7 @@ class Plugin(indigo.PluginBase):
                 if self.debugLevel >= 2:
                     self.debugLog(u" ")
 
-                for dev in indigo.devices.itervalues(filter="self"):
+                for dev in indigo.devices.itervalues('self.EnphaseEnvoyDevice'):
                     if self.debugLevel >= 2:
                         self.debugLog(u"MainLoop:  {0}:".format(dev.name))
                     # self.debugLog(len(dev.states))
@@ -241,6 +241,7 @@ class Plugin(indigo.PluginBase):
                 self.debugLog(u"Result:" + unicode(result))
 
             dev.updateStateOnServer('deviceIsOnline', value=True, uiValue="Online")
+
             dev.setErrorStateOnServer(None)
 
             return result
@@ -252,7 +253,7 @@ class Plugin(indigo.PluginBase):
             if self.debugLevel >= 2:
                 self.debugLog(u"Device is offline. No data to return. ")
             dev.updateStateOnServer('deviceIsOnline', value=False, uiValue="Offline")
-
+            dev.updateStateOnServer('powerStatus', value = 'offline')
             dev.setErrorStateOnServer(u'Offline')
             result = ""
             return result
@@ -326,6 +327,14 @@ class Plugin(indigo.PluginBase):
             timeDifference = int(t.time() - t.mktime(reading_time.timetuple()))
             dev.updateStateOnServer('secsSinceReading', value=timeDifference)
 
+            if int(self.finalDict['production'][1]['wNow']) >= int(self.finalDict['consumption'][0]['wNow']) :
+                #Generating more Power
+                dev.updateStateOnServer('powerStatus', value = 'exporting', uiValue='Exporting Power')
+                dev.updateStateImageOnServer(indigo.kStateImageSel.EnergyMeterOff)
+            else:
+                #Must be opposite or offline
+                dev.updateStateOnServer('powerStatus', value = 'importing', uiValue='Importing Power')
+                dev.updateStateImageOnServer(indigo.kStateImageSel.EnergyMeterOn)
 
         except Exception as error:
              if self.debugLevel >= 2:
@@ -335,6 +344,30 @@ class Plugin(indigo.PluginBase):
         if self.debugLevel >= 2:
             self.debugLog(u'setStates to nil run')
 
+    def generatePanelDevices(self, valuesDict, typeId, devId):
+        if self.debugLevel >= 2:
+            self.debugLog(u'generate Panels run')
+
+        try:
+            #delete all panel devices first up
+            for dev in indigo.devices.itervalues('self.EnphasePanelDevice'):
+                indigo.device.delete(dev.id)
+                if self.debugLevel >2:
+                    self.debugLog(u'Deleting Device'+unicode(dev.id))
+
+            dev = indigo.devices[devId]
+            if self.debugLevel>=2:
+                self.debugLog(u'Folder ID'+str(dev.folderId))
+            self.thePanels = self.getthePanels(dev)
+            if self.thePanels is not None:
+                x = 1
+                for array in self.thePanels:
+                     deviceName = 'Enphase SolarPanel '+str(x)
+                     device = indigo.device.create(address=deviceName, deviceTypeId='EnphasePanelDevice',name=deviceName,protocol=indigo.kProtocol.Plugin, folder=dev.folderId)
+                     x=x+1
+
+        except Exception as error:
+            self.errorLog(u'error within generate panels'+unicode(error.message))
 
 
     def refreshDataAction(self, valuesDict):
