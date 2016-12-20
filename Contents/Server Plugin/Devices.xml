@@ -33,7 +33,7 @@
 
       <Field id="activatePanels" type="checkbox" defaultValue="false" tooltip="Would you like Panel Devices?">
       <Label>Enable Panel Data?:</Label>
-      <Description>Would you to have per panel Data?</Description>
+      <Description>Would you like to access per panel Data?</Description>
           </Field>
 
         <Field id="label11" type="label" alignText="right" fontColor="black">
@@ -127,16 +127,16 @@
       <State id="readingTime">
         <ValueType>Number</ValueType>
         <TriggerLabel>Time of Completed Power Reading</TriggerLabel>
-        <ControlPageLabel>Time of Completed Power reading</ControlPageLabel>
+        <ControlPageLabel>Time of Completed Power Reading</ControlPageLabel>
       </State>
       <State id="secsSinceReading">
         <ValueType>Number</ValueType>
-        <TriggerLabel>Minutes since last Power Reading</TriggerLabel>
-        <ControlPageLabel>Minutes since last Power reading</ControlPageLabel>
+        <TriggerLabel>Seconds since last Power Reading</TriggerLabel>
+        <ControlPageLabel>Seconds since last Power Reading</ControlPageLabel>
       </State>
       <State id="storageActiveCount">
         <ValueType>Number</ValueType>
-        <TriggerLabel>Storage Number active</TriggerLabel>
+        <TriggerLabel>Storage Number Active</TriggerLabel>
         <ControlPageLabel>Storage Number Active</ControlPageLabel>
       </State>
      <State id="storageWattsNow">
